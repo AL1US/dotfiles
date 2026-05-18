@@ -43,6 +43,7 @@ require("lazy").setup({
   -- Умная подсветка кода (Treesitter)
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "master",
     build = ":TSUpdate",
     config = function()
       require("nvim-treesitter.configs").setup({
