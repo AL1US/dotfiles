@@ -1,0 +1,56 @@
+# ========================================== ШРИФТЫ И ТЕКСТ 
+# ========================================== Рекомендую поставить JetBrainsMono 
+# Nerd Font для красивых иконок
+font_family JetBrains Mono bold_font auto italic_font auto bold_italic_font auto
+
+font_size 12.0 disable_ligatures never
+
+# ========================================== КУРСОР И МЫШЬ 
+# ==========================================
+cursor_shape beam cursor_blink_interval 0.5 cursor_stop_blinking_after 15.0
+
+# Скрывать мышь, если начать печатать
+mouse_hide_wait 3.0
+
+# ========================================== ВНЕШНИЙ ВИД ОКНА 
+# ========================================== Отступы от краев окна (создает 
+# "воздух" и выглядит намного эстетичнее)
+window_padding_width 12
+
+# Отключаем дефолтные рамки окна (niri сам нарисует красивые тени и обводку)
+hide_window_decorations yes
+
+# Не спрашивать подтверждение при закрытии окна
+confirm_os_window_close 0
+
+# Легкая полупрозрачность фона (отлично смотрится в Wayland)
+background_opacity 0.95
+
+# ========================================== ПАНЕЛЬ ВКЛАДОК (TABS) 
+# ==========================================
+tab_bar_edge top tab_bar_style powerline tab_powerline_style slanted 
+active_tab_font_style bold inactive_tab_font_style normal
+
+# ========================================== ЦВЕТОВАЯ СХЕМА: GRUVBOX DARK 
+# (Ретро/Олдскул) ==========================================
+foreground #ebdbb2 background #282828 selection_foreground #655b53 
+selection_background #ebdbb2 url_color #d65d0e
+
+# Чёрный
+color0 #282828 color8 #928374
+# Красный
+color1 #cc241d color9 #fb4934
+# Зелёный
+color2 #98971a color10 #b8bb26
+# Жёлтый
+color3 #d79921 color11 #fabd2f
+# Синий
+color4 #458588 color12 #83a598
+# Пурпурный
+color5 #b16286 color13 #d3869b
+# Бирюзовый
+color6 #689d6a color14 #8ec07c
+# Белый
+color7 #a89984 color15 #ebdbb2
+
+
