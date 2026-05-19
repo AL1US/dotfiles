@@ -11,3 +11,9 @@ source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # Инициализируем промпт Starship со значками директорий
 eval "$(starship init zsh)"
+
+export PATH="$HOME/.local/bin:$PATH"
+
+vpn-up() {
+    weston --xwayland -- bash -c "cd /opt/AmneziaVPN/client/ && ./AmneziaVPN.sh" &
+}

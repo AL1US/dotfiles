@@ -55,11 +55,11 @@ layout {
     }
 
     border { off; }
-
+    
     // Мягкие тени для окон
     shadow {
         on
-        draw-behind-window true
+        draw-behind-window false
         softness 25
         spread 2
         offset x=0 y=5
@@ -70,7 +70,7 @@ layout {
 // ==========================
 // АВТОЗАПУСК И СИСТЕМА
 // ==========================
-spawn-sh-at-startup "quickshell --path /etc/xdg/quickshell/noctalia-shell"
+spawn-at-startup "quickshell" "--path" "/home/alius/.config/noctalia"
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
 animations {}
@@ -79,9 +79,11 @@ animations {}
 // ПРАВИЛА ДЛЯ ОКОН
 // ==========================
 window-rule {
-    // Глобальное скругление углов для всех окон
+    //Глобальное скругление углов для всех окон
     geometry-corner-radius 12
     clip-to-geometry true
+    //opacity 0.90
+    draw-border-with-background false
 }
 
 window-rule {
@@ -93,6 +95,7 @@ window-rule {
     match app-id=r#"firefox$"# title="^Picture-in-Picture$"
     open-floating true
 }
+
 
 // ==========================
 // ГОРЯЧИЕ КЛАВИШИ (БИНДЫ)
@@ -235,4 +238,15 @@ binds {
     Mod+Shift+E     { quit; }
     Ctrl+Alt+Delete { quit; }
     Mod+Shift+P     { power-off-monitors; }
+}
+// 1. Принудительная прозрачность для окна, в котором сейчас курсор (фокус)
+window-rule {
+    match is-focused=true
+    opacity 0.90
+}
+
+// 2. Принудительная прозрачность для всех остальных окон
+window-rule {
+    match is-focused=false
+    opacity 0.85
 }
