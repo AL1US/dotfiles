@@ -102,7 +102,7 @@ window-rule {
 // ==========================
 binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
-
+ 
     // --- Приложения ---
     Mod+T { spawn "kitty"; }
     Mod+D { spawn "fuzzel"; }
