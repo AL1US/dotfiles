@@ -27,6 +27,7 @@ set hlsearch
 nnoremap <silent> <Esc> :nohlsearch<CR>
 
 " NERDTree команды (через Пробел)
+let NERDTreeShowHidden = 1
 nnoremap <leader>d :NERDTreeToggle<CR>
 nnoremap <leader>n :NERDTreeFocus<CR>
 nnoremap <leader>nf :NERDTreeFind<CR>
@@ -333,7 +334,17 @@ if ok_telescope then
   telescope.setup({
     defaults = {
       file_ignore_patterns = { "node_modules", "%.git/" }
-    }
+    },
+    pickers = {
+      find_files = {
+        hidden = true,
+      },
+      live_grep = {
+        additional_args = function()
+          return { "--hidden" }
+        end,
+      },
+    },
   })
 end
 
