@@ -252,7 +252,15 @@ nnoremap <S-h> :bprevious<CR>
 nnoremap <leader>w :bdelete<CR>
 nnoremap <leader>ц :bdelete<CR>
 
-" Быстрое сохранение файлов через Пробел
+" Быстрое сохранение файлов
+" Ctrl + s (или Ctrl + ы) — сохранить ВСЕ открытые файлы во всех режимах (Normal, Insert, Visual)
+nnoremap <C-s> <Cmd>wa<CR>
+inoremap <C-s> <Cmd>wa<CR>
+xnoremap <C-s> <Cmd>wa<CR>
+nnoremap <C-ы> <Cmd>wa<CR>
+inoremap <C-ы> <Cmd>wa<CR>
+xnoremap <C-ы> <Cmd>wa<CR>
+
 " Пробел + s (или Пробел + ы) — сохранить текущий файл
 nnoremap <leader>s :w<CR>
 nnoremap <leader>ы :w<CR>
