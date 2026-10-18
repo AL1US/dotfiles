@@ -5,16 +5,16 @@ set mousemoveevent
 set number
 set relativenumber
 set smarttab
-set tabstop=2
-set shiftwidth=2
-set softtabstop=2
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
 set expandtab
 set shiftround
 set autoindent
 set updatetime=300
 
-" Строго фиксированная табуляция в 2 пробела для всех файлов (включая Python)
-autocmd FileType * setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab shiftround
+" Строго фиксированная табуляция в 4 пробела для всех файлов
+autocmd FileType * setlocal tabstop=4 shiftwidth=4 softtabstop=4 expandtab shiftround
 
 " Системный буфер обмена
 set clipboard+=unnamedplus
