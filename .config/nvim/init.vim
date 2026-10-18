@@ -28,6 +28,21 @@ nnoremap <silent> <Esc> :nohlsearch<CR>
 
 " NERDTree команды (через Пробел)
 let NERDTreeShowHidden = 1
+let g:NERDTreeGitStatusIndicatorMapCustom = {
+    \ 'Modified'  :'✹',
+    \ 'Staged'    :'✚',
+    \ 'Untracked' :'✭',
+    \ 'Renamed'   :'➜',
+    \ 'Unmerged'  :'═',
+    \ 'Deleted'   :'✖',
+    \ 'Dirty'     :'✗',
+    \ 'Ignored'   :'☒',
+    \ 'Clean'     :'✔︎',
+    \ 'Unknown'   :'?'
+    \ }
+let g:NERDTreeGitStatusUseNerdFonts = 1
+let g:NERDTreeGitStatusShowIgnored = 1
+let g:NERDTreeGitStatusShowClean = 1
 nnoremap <leader>d :NERDTreeToggle<CR>
 nnoremap <leader>n :NERDTreeFocus<CR>
 nnoremap <leader>nf :NERDTreeFind<CR>
@@ -168,6 +183,7 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'preservim/nerdtree'
 Plug 'ryanoasis/vim-devicons'
+Plug 'Xuyuanp/nerdtree-git-plugin'
 
 " Подсветка синтаксиса
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
@@ -239,6 +255,7 @@ nnoremap <leader>ff :Telescope find_files<CR>
 nnoremap <leader>fg :Telescope live_grep<CR>
 nnoremap <leader>fb :Telescope buffers<CR>
 nnoremap <leader>fh :Telescope help_tags<CR>
+nnoremap <leader>gs :Telescope git_status<CR>
 " Поиск файлов по всей домашней директории
 nnoremap <leader>fa :Telescope find_files prompt_title=Home\ Search cwd=~<CR>
 
