@@ -249,6 +249,24 @@ nnoremap <S-h> :bprevious<CR>
 nnoremap <leader>w :bdelete<CR>
 nnoremap <leader>ц :bdelete<CR>
 
+" Быстрое сохранение файлов через Пробел
+" Пробел + s (или Пробел + ы) — сохранить текущий файл
+nnoremap <leader>s :w<CR>
+nnoremap <leader>ы :w<CR>
+" Пробел + S (Shift+s) или Пробел + sa — сохранить ВСЕ открытые файлы во всём проекте
+nnoremap <leader>S :wa<CR>
+nnoremap <leader>Ы :wa<CR>
+nnoremap <leader>sa :wa<CR>
+nnoremap <leader>ыа :wa<CR>
+
+" Сохранение изменений в Git на уровне корня проекта:
+" Пробел + g + c — сохранить (закоммитить) ВСЕ изменения проекта с уровня корня
+nnoremap <leader>gc <Cmd>lua Git_save_all_project()<CR>
+nnoremap <leader>пк <Cmd>lua Git_save_all_project()<CR>
+" Пробел + g + p — запушить изменения на GitHub
+nnoremap <leader>gp <Cmd>lua Git_push_project()<CR>
+nnoremap <leader>пз <Cmd>lua Git_push_project()<CR>
+
 " Telescope горячие клавиши
 nnoremap <C-p> :Telescope find_files<CR>
 nnoremap <leader>ff :Telescope find_files<CR>
@@ -805,4 +823,54 @@ local ok_colorizer, colorizer = pcall(require, 'colorizer')
 if ok_colorizer then
   colorizer.setup()
 end
+
+-- Функция сохранения всех изменений в Git на уровне корня проекта
+function Git_save_all_project()
+  vim.cmd('wa')
+  local git_root = vim.fs.root(0, '.git')
+  if not git_root then
+    local toplevel = vim.fn.system('git rev-parse --show-toplevel 2>/dev/null'):gsub('%s+$', '')
+    if vim.v.shell_error == 0 and toplevel ~= '' then
+      git_root = toplevel
+    else
+      git_root = vim.fn.getcwd()
+    end
+  end
+
+  vim.ui.input({ prompt = '💬 Сообщение коммита (Enter для автосохранения): ' }, function(msg)
+    if msg == nil then return end
+    if msg == '' then
+      msg = 'chore: auto-save all project changes'
+    end
+
+    local cmd = string.format("cd %s && git add -A && git commit -m %s",
+      vim.fn.shellescape(git_root),
+      vim.fn.shellescape(msg)
+    )
+    local out = vim.fn.system(cmd)
+    if vim.v.shell_error == 0 then
+      vim.notify("✅ [Git] Все изменения сохранены на уровне корня:\n" .. out, vim.log.levels.INFO)
+    else
+      if out:find("nothing to commit") then
+        vim.notify("ℹ️ [Git] Нет новых изменений для коммита в корне проекта.", vim.log.levels.INFO)
+      else
+        vim.notify("⚠️ [Git] Ошибка сохранения:\n" .. out, vim.log.levels.WARN)
+      end
+    end
+  end)
+end
+
+-- Функция отправки изменений в Git репозиторий
+function Git_push_project()
+  local git_root = vim.fs.root(0, '.git') or vim.fn.getcwd()
+  vim.notify("🚀 [Git] Отправка изменений в репозиторий...", vim.log.levels.INFO)
+  local cmd = string.format("cd %s && git push", vim.fn.shellescape(git_root))
+  local out = vim.fn.system(cmd)
+  if vim.v.shell_error == 0 then
+    vim.notify("✅ [Git] Изменения успешно отправлены на GitHub!\n" .. out, vim.log.levels.INFO)
+  else
+    vim.notify("⚠️ [Git] Ошибка при отправке на GitHub:\n" .. out, vim.log.levels.ERROR)
+  end
+end
+
 EOF

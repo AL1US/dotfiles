@@ -1,0 +1,27 @@
+#!/bin/bash
+# Двойная защита: блокировка отправки коммитов в GitHub, если в них есть .env
+while read -r local_ref local_oid remote_ref remote_oid
+do
+  if [ "$local_oid" != "0000000000000000000000000000000000000000" ]; then
+    if [ "$remote_oid" = "0000000000000000000000000000000000000000" ]; then
+      RANGE="$local_oid --not --branches --tags"
+    else
+      RANGE="$remote_oid..$local_oid"
+    fi
+    FORBIDDEN=$(git log $RANGE --name-only --format="" | grep -E "(^|/)(\.env|\.env\..*|\.env.*)$" || true)
+    if [ -n "$FORBIDDEN" ]; then
+      echo ""
+      echo "🚫 ==================================================================="
+      echo "🚫 ЗАЩИТА GIT: ПУШ В РЕПОЗИТОРИЙ ЗАБЛОКИРОВАН!"
+      echo "🚫 В отправляемых коммитах найдены файлы .env:"
+      echo "$FORBIDDEN" | sort -u | sed 's/^/   -> /'
+      echo ""
+      echo "🚫 Пуш отменён, чтобы секреты не утекли на GitHub!"
+      echo "🚫 ==================================================================="
+      echo ""
+      exit 1
+    fi
+  fi
+done
+
+exit 0
