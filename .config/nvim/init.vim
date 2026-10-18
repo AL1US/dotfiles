@@ -122,6 +122,12 @@ inoremap <X2Mouse> <Esc><C-i>
 inoremap jj <Esc>
 inoremap оо <Esc>
 
+" Отступы в Visual mode через Tab и Shift-Tab (с сохранением выделения)
+xnoremap <Tab> >gv
+xnoremap <S-Tab> <gv
+xnoremap > >gv
+xnoremap < <gv
+
 " Поддержка русской раскладки в Normal mode
 set langmap=ФИСВУАПРШОЛДЬТЩЗЙКЫЕГМЦЧНЯ;ABCDEFGHIJKLMNOPQRSTUVWXYZ,фисвуапршолдьтщзйкыегмцчня;abcdefghijklmnopqrstuvwxyz,Ж;:,ж;\;,э;',х;[,ъ;],Х;{,Ъ;}
 
@@ -586,6 +592,13 @@ if vim.lsp.config then
         config.settings = config.settings or {}
         config.settings.python = config.settings.python or {}
         config.settings.python.pythonPath = python_path
+        if venv_dir then
+          config.settings.python.venvPath = vim.fs.dirname(venv_dir)
+          config.settings.python.venv = vim.fs.basename(venv_dir)
+        end
+        config.settings.python.analysis = config.settings.python.analysis or {}
+        config.settings.python.analysis.autoSearchPaths = true
+        config.settings.python.analysis.useLibraryCodeForTypes = true
         sync_venv_env(venv_dir)
       end
     end,

@@ -21,11 +21,20 @@ input {
 // ==========================
 // НАСТРОЙКИ МОНИТОРА
 // ==========================
-output "eDP-1" {
-    mode "1920x1080@120.030"
-    scale 2
+// ViewSonic Q19wb — слева (основная зона, 1440x900)
+output "HDMI-A-1" {
+    mode "1440x900@59.887"
+    scale 1
     transform "normal"
-    position x=1280 y=0
+    position x=0 y=0
+}
+
+// HP 24m — справа (1920x1080)
+output "DVI-D-1" {
+    mode "1920x1080@60.000"
+    scale 1
+    transform "normal"
+    position x=1440 y=0
 }
 
 // ==========================
@@ -105,7 +114,7 @@ binds {
  
     // --- Приложения ---
     Mod+T { spawn "kitty"; }
-    Mod+D { spawn "fuzzel"; }
+    Mod+D { spawn "/home/alius/.config/rofi/launchers/type-6/launcher.sh"; }
     Mod+B { spawn "firefox"; }
     Alt+O { spawn "obsidian"; }
     Alt+P { spawn "code"; }
