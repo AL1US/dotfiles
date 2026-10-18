@@ -226,6 +226,9 @@ Plug 'folke/flash.nvim'
 " Подсветка цветов (HEX/RGB)
 Plug 'NvChad/nvim-colorizer.lua'
 
+" Полоски отступов (Indent Guides)
+Plug 'lukas-reineke/indent-blankline.nvim'
+
 " Подсказки параметров функций (Signature Help)
 Plug 'ray-x/lsp_signature.nvim'
 call plug#end()
@@ -871,6 +874,22 @@ function Git_push_project()
   else
     vim.notify("⚠️ [Git] Ошибка при отправке на GitHub:\n" .. out, vim.log.levels.ERROR)
   end
+end
+
+-- Полоски отступов (Indent Guides / Indent-Blankline)
+local ok_ibl, ibl = pcall(require, 'ibl')
+if ok_ibl then
+  ibl.setup({
+    indent = {
+      char = '│',
+      tab_char = '│',
+    },
+    scope = {
+      enabled = true,
+      show_start = false,
+      show_end = false,
+    },
+  })
 end
 
 EOF
