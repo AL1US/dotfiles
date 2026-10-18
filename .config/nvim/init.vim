@@ -8,8 +8,13 @@ set smarttab
 set tabstop=2
 set shiftwidth=2
 set softtabstop=2
+set expandtab
+set shiftround
 set autoindent
 set updatetime=300
+
+" Строго фиксированная табуляция в 2 пробела для всех файлов (включая Python)
+autocmd FileType * setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab shiftround
 
 " Системный буфер обмена
 set clipboard+=unnamedplus
@@ -127,6 +132,22 @@ xnoremap <Tab> >gv
 xnoremap <S-Tab> <gv
 xnoremap > >gv
 xnoremap < <gv
+
+" Перемещение строк вверх и вниз (Visual mode: Alt+k / Alt+j / Alt+Up / Alt+Down)
+xnoremap <A-k> :m '<-2<CR>gv=gv
+xnoremap <A-j> :m '>+1<CR>gv=gv
+xnoremap <A-Up> :m '<-2<CR>gv=gv
+xnoremap <A-Down> :m '>+1<CR>gv=gv
+xnoremap <A-л> :m '<-2<CR>gv=gv
+xnoremap <A-о> :m '>+1<CR>gv=gv
+
+" Перемещение текущей строки вверх и вниз (Normal mode)
+nnoremap <A-k> :m .-2<CR>==
+nnoremap <A-j> :m .+1<CR>==
+nnoremap <A-Up> :m .-2<CR>==
+nnoremap <A-Down> :m .+1<CR>==
+nnoremap <A-л> :m .-2<CR>==
+nnoremap <A-о> :m .+1<CR>==
 
 " Поддержка русской раскладки в Normal mode
 set langmap=ФИСВУАПРШОЛДЬТЩЗЙКЫЕГМЦЧНЯ;ABCDEFGHIJKLMNOPQRSTUVWXYZ,фисвуапршолдьтщзйкыегмцчня;abcdefghijklmnopqrstuvwxyz,Ж;:,ж;\;,э;',х;[,ъ;],Х;{,Ъ;}
@@ -480,21 +501,89 @@ local function on_ctrl_mouse_move()
   end)
 end
 
+local mouse_diag_win = nil
+local last_diag_pos = nil
+
 local function on_mouse_move()
   if current_highlighted_buf or last_word_info then
     clear_mouse_highlight()
+  end
+
+  local mouse = vim.fn.getmousepos()
+  if mouse.winid <= 0 or not vim.api.nvim_win_is_valid(mouse.winid) or mouse.line <= 0 or mouse.column <= 0 then
+    if mouse_diag_win and vim.api.nvim_win_is_valid(mouse_diag_win) then
+      vim.api.nvim_win_close(mouse_diag_win, true)
+      mouse_diag_win = nil
+    end
+    last_diag_pos = nil
+    return
+  end
+
+  -- Не закрываем окно, если мышь внутри самого плавающего окна ошибки
+  if mouse_diag_win and vim.api.nvim_win_is_valid(mouse_diag_win) and mouse.winid == mouse_diag_win then
+    return
+  end
+
+  local bufnr = vim.api.nvim_win_get_buf(mouse.winid)
+  local line = mouse.line - 1
+  local col = mouse.column - 1
+
+  if last_diag_pos and last_diag_pos.bufnr == bufnr and last_diag_pos.line == line then
+    return
+  end
+
+  local diags = vim.diagnostic.get(bufnr, { lnum = line })
+  if #diags > 0 then
+    last_diag_pos = { bufnr = bufnr, line = line }
+    if mouse_diag_win and vim.api.nvim_win_is_valid(mouse_diag_win) then
+      vim.api.nvim_win_close(mouse_diag_win, true)
+    end
+    mouse_diag_win = vim.diagnostic.open_float({
+      bufnr = bufnr,
+      pos = { line, col },
+      focus = false,
+      scope = 'line',
+      border = 'rounded',
+      prefix = '● ',
+    })
+  else
+    if mouse_diag_win and vim.api.nvim_win_is_valid(mouse_diag_win) then
+      vim.api.nvim_win_close(mouse_diag_win, true)
+      mouse_diag_win = nil
+    end
+    last_diag_pos = nil
   end
 end
 
 vim.keymap.set({ 'n', 'i', 'v' }, '<C-MouseMove>', on_ctrl_mouse_move, { silent = true })
 vim.keymap.set({ 'n', 'i', 'v' }, '<MouseMove>', on_mouse_move, { silent = true })
 
--- Очистка подсветки при переключении буфера, вводе текста или перемещении курсора
+-- Автопоказ ошибки при остановке курсора на строке с ошибкой (CursorHold)
+vim.api.nvim_create_autocmd({ 'CursorHold' }, {
+  callback = function()
+    local diags = vim.diagnostic.get(0, { lnum = vim.fn.line('.') - 1 })
+    if #diags > 0 and not (mouse_diag_win and vim.api.nvim_win_is_valid(mouse_diag_win)) then
+      vim.diagnostic.open_float(nil, {
+        focus = false,
+        scope = 'cursor',
+        border = 'rounded',
+        prefix = '● ',
+      })
+    end
+  end,
+})
+
+-- Очистка подсветки и плавающих окон при вводе текста или перемещении курсора
 vim.api.nvim_create_autocmd({ 'BufLeave', 'InsertEnter', 'CursorMoved', 'CursorMovedI' }, {
   callback = function()
     if current_highlighted_buf then
       clear_mouse_highlight()
     end
+    if mouse_diag_win and vim.api.nvim_win_is_valid(mouse_diag_win) then
+      vim.api.nvim_win_close(mouse_diag_win, true)
+      mouse_diag_win = nil
+    end
+    last_diag_pos = nil
   end,
 })
 
@@ -510,6 +599,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
     vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
     vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, bufopts)
     vim.keymap.set('n', ']d', vim.diagnostic.goto_next, bufopts)
+    vim.keymap.set('n', 'gl', function() vim.diagnostic.open_float({ border = 'rounded' }) end, bufopts)
+    vim.keymap.set('n', '<leader>e', function() vim.diagnostic.open_float({ border = 'rounded' }) end, bufopts)
+    vim.keymap.set('n', '<leader>у', function() vim.diagnostic.open_float({ border = 'rounded' }) end, bufopts)
 
     -- Подсказки параметров функций на лету (Signature Help)
     local ok_sig, lsp_signature = pcall(require, 'lsp_signature')
