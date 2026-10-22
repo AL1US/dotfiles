@@ -205,6 +205,7 @@ Plug 'hrsh7th/cmp-buffer'
 Plug 'hrsh7th/cmp-path'
 Plug 'L3MON4D3/LuaSnip'
 Plug 'saadparwaiz1/cmp_luasnip'
+Plug 'rafamadriz/friendly-snippets'
 
 " Файловый менеджер Yazi
 Plug 'mikavilpas/yazi.nvim'
@@ -426,7 +427,7 @@ local ok_mason_lsp, mason_lspconfig = pcall(require, 'mason-lspconfig')
 if ok_mason and ok_mason_lsp then
   mason.setup()
   mason_lspconfig.setup({
-    ensure_installed = { "pyright", "ts_ls", "solidity_ls_nomicfoundation" },
+    ensure_installed = { "pyright", "ts_ls", "solidity_ls_nomicfoundation", "html", "cssls", "emmet_language_server" },
     automatic_installation = true,
   })
 end
@@ -434,6 +435,7 @@ end
 local ok_cmp, cmp = pcall(require, 'cmp')
 local ok_luasnip, luasnip = pcall(require, 'luasnip')
 if ok_cmp and ok_luasnip then
+  pcall(require('luasnip.loaders.from_vscode').lazy_load)
   cmp.setup({
     snippet = {
       expand = function(args)
@@ -815,7 +817,7 @@ vim.api.nvim_create_autocmd('FileType', {
 })
 
 if vim.lsp.enable then
-  vim.lsp.enable({ 'pyright', 'ts_ls', 'solidity_ls_nomicfoundation' })
+  vim.lsp.enable({ 'pyright', 'ts_ls', 'solidity_ls_nomicfoundation', 'html', 'cssls', 'emmet_language_server' })
 end
 
 -- Autopairs (автозакрытие скобок)
