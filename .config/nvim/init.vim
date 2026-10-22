@@ -12,6 +12,7 @@ set expandtab
 set shiftround
 set autoindent
 set updatetime=300
+set pumheight=8
 
 " Строго фиксированная табуляция в 4 пробела для всех файлов
 autocmd FileType * setlocal tabstop=4 shiftwidth=4 softtabstop=4 expandtab shiftround
@@ -425,7 +426,7 @@ local ok_mason_lsp, mason_lspconfig = pcall(require, 'mason-lspconfig')
 if ok_mason and ok_mason_lsp then
   mason.setup()
   mason_lspconfig.setup({
-    ensure_installed = { "pyright" },
+    ensure_installed = { "pyright", "ts_ls", "solidity_ls_nomicfoundation" },
     automatic_installation = true,
   })
 end
@@ -463,12 +464,19 @@ if ok_cmp and ok_luasnip then
         end
       end, { 'i', 's' }),
     }),
+    performance = {
+      max_view_entries = 8,
+    },
+    window = {
+      completion = cmp.config.window.bordered(),
+      documentation = cmp.config.window.bordered(),
+    },
     sources = cmp.config.sources({
-      { name = 'nvim_lsp' },
-      { name = 'luasnip' },
+      { name = 'nvim_lsp', max_item_count = 8, priority = 1000 },
+      { name = 'luasnip', max_item_count = 3, priority = 750 },
     }, {
-      { name = 'buffer' },
-      { name = 'path' },
+      { name = 'path', max_item_count = 4, priority = 500 },
+      { name = 'buffer', max_item_count = 4, priority = 250, keyword_length = 3 },
     })
   })
 end
@@ -660,19 +668,41 @@ vim.api.nvim_create_autocmd('LspAttach', {
     vim.keymap.set('n', '<leader>e', function() vim.diagnostic.open_float({ border = 'rounded' }) end, bufopts)
     vim.keymap.set('n', '<leader>у', function() vim.diagnostic.open_float({ border = 'rounded' }) end, bufopts)
 
-    -- Подсказки параметров функций на лету (Signature Help)
+    -- Подсказки параметров функций на лету (Signature Help) — компактно, как в PyCharm
     local ok_sig, lsp_signature = pcall(require, 'lsp_signature')
     if ok_sig then
       lsp_signature.on_attach({
         bind = true,
         floating_window = true,
-        hint_enable = true,
-        hint_prefix = "📌 ",
+        floating_window_above_cur_line = true,
+        doc_lines = 0,
+        max_height = 4,
+        max_width = 90,
+        wrap = true,
+        hint_enable = false,
         handler_opts = { border = "rounded" },
       }, ev.buf)
     end
   end,
 })
+
+-- Ограничение подсказок параметров: показывать только активную перегрузку функции (как в PyCharm), без гигантских списков
+local orig_lsp_buf_request = vim.lsp.buf_request
+vim.lsp.buf_request = function(bufnr, method, params, handler)
+  if method == 'textDocument/signatureHelp' and handler then
+    local orig_handler = handler
+    handler = function(err, result, ctx, config)
+      if result and result.signatures and #result.signatures > 1 then
+        local act = (result.activeSignature or 0) + 1
+        local chosen = result.signatures[act] or result.signatures[1]
+        result.signatures = { chosen }
+        result.activeSignature = 0
+      end
+      return orig_handler(err, result, ctx, config)
+    end
+  end
+  return orig_lsp_buf_request(bufnr, method, params, handler)
+end
 
 local ok_cmp_lsp, cmp_nvim_lsp = pcall(require, 'cmp_nvim_lsp')
 if ok_cmp_lsp and vim.lsp.config then
@@ -732,22 +762,44 @@ local function sync_venv_env(venv_dir)
   end
 end
 
+local pyright_analysis_settings = {
+  typeCheckingMode = 'off',
+  autoSearchPaths = true,
+  useLibraryCodeForTypes = true,
+  autoImportCompletions = true,
+  indexing = true,
+  packageIndexDepth = 5,
+  diagnosticMode = 'openFilesOnly',
+  extraPaths = { '.', 'src', 'app' },
+  diagnosticSeverityOverrides = {
+    reportMissingTypeStubs = 'none',
+    reportUnknownMemberType = 'none',
+    reportUnknownArgumentType = 'none',
+    reportUnknownVariableType = 'none',
+  },
+}
+
 if vim.lsp.config then
   vim.lsp.config('pyright', {
     root_markers = { '.venv', 'venv', '.env', 'env', '.vevn', '.virtualenv', 'pyproject.toml', 'setup.py', 'setup.cfg', 'requirements.txt', 'Pipfile', '.git' },
+    settings = {
+      python = {
+        analysis = pyright_analysis_settings,
+      },
+    },
     before_init = function(params, config)
+      config.settings = config.settings or {}
+      config.settings.python = config.settings.python or {}
+      config.settings.python.analysis = vim.tbl_deep_extend('force', pyright_analysis_settings, config.settings.python.analysis or {})
+
       local python_path, venv_dir = find_python_path(config.root_dir)
       if python_path then
-        config.settings = config.settings or {}
-        config.settings.python = config.settings.python or {}
         config.settings.python.pythonPath = python_path
+        config.settings.python.defaultInterpreterPath = python_path
         if venv_dir then
           config.settings.python.venvPath = vim.fs.dirname(venv_dir)
           config.settings.python.venv = vim.fs.basename(venv_dir)
         end
-        config.settings.python.analysis = config.settings.python.analysis or {}
-        config.settings.python.analysis.autoSearchPaths = true
-        config.settings.python.analysis.useLibraryCodeForTypes = true
         sync_venv_env(venv_dir)
       end
     end,
@@ -763,7 +815,7 @@ vim.api.nvim_create_autocmd('FileType', {
 })
 
 if vim.lsp.enable then
-  vim.lsp.enable('pyright')
+  vim.lsp.enable({ 'pyright', 'ts_ls', 'solidity_ls_nomicfoundation' })
 end
 
 -- Autopairs (автозакрытие скобок)
